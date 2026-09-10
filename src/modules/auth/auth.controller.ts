@@ -13,7 +13,7 @@ export class AuthController {
   ) {
     const result = await this.authService.register(createUser);
     
-    response.status(200).json({
+    response.status(201).json({
       success: true,
       message: 'user registered successfully',
       data: result,

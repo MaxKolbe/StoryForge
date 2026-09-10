@@ -9,7 +9,7 @@ export const sendEmail = async (
   to: string,
   subject: string,
   content: string,
-  name: string = 'Mini Product Store',
+  name: string = 'StoryForge',
 ): Promise<{
   messageId?: string | undefined;
   messageIds?: string[] | undefined;
