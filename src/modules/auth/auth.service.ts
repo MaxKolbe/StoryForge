@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import { hashPassword, verifyPassword } from '../../utils/password.util.js';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UserRegisteredEvent } from '../../events/events.js';
@@ -18,19 +22,27 @@ export class AuthService {
     const { email, password } = body;
     const hashedPassword = await hashPassword(password);
 
-    
+    const [oguser] = await this.appdb
+      .select()
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+
+    if (oguser) {
+      throw new ConflictException('User already exists!');
+    }
+
     const [newUser] = await this.appdb
-        .insert(users)
-        .values({
-          email,
-          password: hashedPassword,
-        })
-        .returning({
-          id: users.id,
-          email: users.email,
-          createdAt: users.createdAt,
-        });
-    
+      .insert(users)
+      .values({
+        email,
+        password: hashedPassword,
+      })
+      .returning({
+        id: users.id,
+        email: users.email,
+        createdAt: users.createdAt,
+      });
 
     // Event Emitter
     this.eventEmitter.emit(
