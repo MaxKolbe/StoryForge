@@ -7,7 +7,7 @@ const brevoClient = new BrevoClient({ apiKey: env.BREVO_API_KEY.toString() });
 
 @Injectable()
 export class SendEmail {
-  private brevo = brevoClient;
+  private readonly brevo = brevoClient;
 
   async sendEmail(
     to: string,

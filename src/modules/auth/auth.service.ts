@@ -8,21 +8,23 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UserRegisteredEvent } from '../../events/events.js';
 import { generateToken } from '../../utils/token.js';
 import { AuthDto } from './dto/auth.dto.js';
-import { db } from '../../config/db.config.js';
+import { Database } from '../../config/db.config.js';
 import { users } from '../../database/schemas/users.js';
 import { eq } from 'drizzle-orm';
 
 @Injectable()
 export class AuthService {
-  private readonly appdb = db;
-
-  constructor(private eventEmitter: EventEmitter2) {}
+  constructor(
+    private eventEmitter: EventEmitter2,
+    private readonly appdb: Database,
+  ) {}
 
   async register(body: AuthDto) {
+    const db = this.appdb.exec();
     const { email, password } = body;
     const hashedPassword = await hashPassword(password);
 
-    const [oguser] = await this.appdb
+    const [oguser] = await db
       .select()
       .from(users)
       .where(eq(users.email, email))
@@ -32,7 +34,7 @@ export class AuthService {
       throw new ConflictException('User already exists!');
     }
 
-    const [newUser] = await this.appdb
+    const [newUser] = await db
       .insert(users)
       .values({
         email,
@@ -57,9 +59,10 @@ export class AuthService {
   }
 
   async login(body: AuthDto) {
+    const db = this.appdb.exec();
     const { email, password } = body;
 
-    const [user] = await this.appdb
+    const [user] = await db
       .select()
       .from(users)
       .where(eq(users.email, email))

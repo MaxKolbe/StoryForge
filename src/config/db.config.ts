@@ -1,28 +1,38 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { env } from "./env.validation.js";
-import { Logger } from '@nestjs/common';
+import { env } from './env.validation.js';
+import { Injectable, Logger } from '@nestjs/common';
 import { Pool, PoolClient } from 'pg';
 
-
-
-const pool = new Pool({
+const appPool = new Pool({
   connectionString: env.PG_DATABASE,
 });
 
-export async function connectDatabase() {
-  try {
-    const client = await pool.connect();
-    client.release();
+@Injectable()
+export class Database {
+  private readonly pool = appPool;
 
-    Logger.log("Connected to database Pool successfully", "Database Connection");
-  } catch (err) {
-    Logger.error(err, "Failed to connect to database");
-    process.exit(1);
+  async connect() {
+    try {
+      const client = await this.pool.connect();
+      client.release();
+
+      Logger.log(
+        'Connected to database Pool successfully',
+        'Database Connection',
+      );
+    } catch (err) {
+      Logger.error(err, 'Failed to connect to database');
+      process.exit(1);
+    }
+
+    this.pool.on('error', (err: Error, client: PoolClient) => {
+      Logger.error(err, 'Unexpected error on idle client');
+    });
+  }
+
+  exec(){
+    const db = drizzle({ client: this.pool });
+
+    return db;
   }
 }
-
-pool.on("error", (err: Error, client: PoolClient) => {
-  Logger.error(err, "Unexpected error on idle client")
-});
-
-export const db = drizzle({ client: pool });

@@ -4,7 +4,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { env } from './config/env.validation.js';
 import { logger } from './config/logger.config.js';
-import { connectDatabase } from './config/db.config.js';
+import { Database } from './config/db.config.js';
 import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
@@ -19,7 +19,8 @@ async function bootstrap() {
   app.setBaseViewsDir(join(process.cwd(), '/views'));
   app.setViewEngine('ejs');
 
-  await connectDatabase();
+  const db = new Database();
+  await db.connect()
   await app.listen(env.PORT ?? 3000);
 }
 
