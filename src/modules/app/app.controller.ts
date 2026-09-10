@@ -1,57 +1,60 @@
 import {
-  Controller,
   Get,
-  HttpCode,
-  Post,
   Res,
   Req,
-  Body,
   Param,
+  Controller,
+  BadRequestException,
+  UnauthorizedException,
+  ForbiddenException,
+  ConflictException,
+  ServiceUnavailableException,
+  InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { AppService } from './app.service.js';
 import type { Request, Response } from 'express';
 
-@Controller() // Decorator
+@Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get() // response status code is 200
-  getHello(): string {
-    return this.appService.getHello();
+  @Get('api/v1')
+  getHome(@Res({ passthrough: true }) response: Response) {
+    response.status(200).json({
+      success: true,
+      message: 'Welcome to StoryForge',
+    });
   }
 
-  @Post() // response status code is 201
-  postHello(): string {
-    return this.appService.getHello();
+  @Get('*')
+  getWildCard(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    response.status(404).json({
+      success: false,
+      error: { code: 'NOT_FOUND', message: `Route ${request.path} not found` },
+    });
   }
 
-  @Post()
-  @HttpCode(204) // response status code is 204
-  postNoHello(): string {
-    return this.appService.getHello();
+  @Get('errors/:id')
+  getErrorResponses(@Param('id') id: string) {
+    switch (id) {
+      case '400':
+        throw new BadRequestException();
+      case '401':
+        throw new UnauthorizedException();
+      case '403':
+        throw new ForbiddenException();
+      case '404':
+        throw new NotFoundException();
+      case '409':
+        throw new ConflictException();
+      case '500':
+        throw new InternalServerErrorException();
+      case '503':
+        throw new ServiceUnavailableException();
+    }
   }
-
-  @Post() // use both nest default return + express's response object
-  findall(@Res({ passthrough: true }) response: Response) {
-    response.status(200).send('Hello world');
-  }
-
-  @Get()
-  findAll(@Req() request: Request): string {
-    return 'This action returns all cats';
-  }
-
-  // Notes: @Body(), @Query(), @Param(), and @RawBody() can also accept an options object with schema and pipes.
-
-  // @Post()
-  // create(@Body({ schema: createCatSchema }) createCatDto: CreateCatDto) {
-  //   return this.catsService.create(createCatDto);
-  // }
-
-  // @Get(':id')
-  // findOne(
-  //   @Param('id', { schema: z.coerce.number().int().positive() }) id: number,
-  // ) {
-  //   return this.catsService.findOne(id);
-  // }
 }

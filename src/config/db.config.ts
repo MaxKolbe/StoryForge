@@ -1,10 +1,12 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
+import { env } from "./env.validation.js";
 import { Logger } from '@nestjs/common';
 import { Pool, PoolClient } from 'pg';
 
 
+
 const pool = new Pool({
-  connectionString: process.env.PG_DATABASE,
+  connectionString: env.PG_DATABASE,
 });
 
 export async function connectDatabase() {

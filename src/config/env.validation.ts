@@ -1,4 +1,4 @@
-import { Logger } from "@nestjs/common";
+import { BadRequestException, Logger } from "@nestjs/common";
 import * as z from "zod";
 
 const EnvSchema = z.object({
@@ -21,8 +21,7 @@ if (!result.success) {
     message: issue.message,
   }));
 
-  Logger.error(errors, "Invalid environment configuration")
-  throw new Error(`Invalid environment configuration: ${errors}`);
+  throw new BadRequestException(errors, "Invalid environment configuration")
 }
 
 export const env = result.data;
