@@ -6,6 +6,7 @@ import { AuthController } from './modules/auth/auth.controller.js';
 import { AppService } from './modules/app/app.service.js';
 import { AuthService } from './modules/auth/auth.service.js';
 import { AuthEventsListener } from './events/listeners/auth.events.js';
+import { SendEmail } from './modules/emails/email.service.js';
 
 @Module({
   imports: [
@@ -16,6 +17,6 @@ import { AuthEventsListener } from './events/listeners/auth.events.js';
     }),
   ],
   controllers: [AppController, AuthController],
-  providers: [AppService, AuthService, AuthEventsListener],
+  providers: [AppService, AuthService, AuthEventsListener, SendEmail],
 })
 export class AppModule {}

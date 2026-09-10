@@ -2,11 +2,13 @@ import { Logger } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { UserRegisteredEvent } from '../events.js';
-import { sendEmail } from '../../modules/emails/email.service.js';
+import { SendEmail } from '../../modules/emails/email.service.js';
 import ejs from 'ejs';
 
 @Injectable()
 export class AuthEventsListener {
+  constructor(private readonly email: SendEmail) {}
+
   @OnEvent('auth.user-registered')
   async handleUserRegisteredEvent(event: UserRegisteredEvent) {
     Logger.log(event.payload.email, 'USER REGISTERED EVENT RECEIVED');
@@ -18,7 +20,7 @@ export class AuthEventsListener {
         { async: true },
       );
 
-      const info = await sendEmail(event.payload.email, 'Welcome!', content);
+      const info = await this.email.sendEmail(event.payload.email, 'Welcome!', content);
 
       if (!info) {
         throw new Error();
