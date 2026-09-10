@@ -1,5 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { hashPassword, verifyPassword } from '../../utils/password.util.js';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { UserRegisteredEvent } from '../../events/events.js';
 import { generateToken } from '../../utils/token.js';
 import { AuthDto } from './dto/auth.dto.js';
 import { db } from '../../config/db.config.js';
@@ -9,6 +11,8 @@ import { eq } from 'drizzle-orm';
 @Injectable()
 export class AuthService {
   private readonly appdb = db;
+
+  constructor(private eventEmitter: EventEmitter2) {}
 
   async register(body: AuthDto) {
     const { email, password } = body;
@@ -25,7 +29,15 @@ export class AuthService {
         email: users.email,
         createdAt: users.createdAt,
       });
-    // event to send user email on registration
+
+    // Event Emitter
+    this.eventEmitter.emit(
+      'auth.user-registered',
+      new UserRegisteredEvent({
+        userId: newUser.id,
+        email: newUser.email,
+      }),
+    );
 
     return newUser;
   }
