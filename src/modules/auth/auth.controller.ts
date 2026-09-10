@@ -12,6 +12,7 @@ export class AuthController {
     @Body() createUser: AuthDto,
   ) {
     const result = await this.authService.register(createUser);
+    
     response.status(200).json({
       success: true,
       message: 'user registered successfully',
@@ -32,7 +33,7 @@ export class AuthController {
       data: result.user,
       meta: {
         token: result.token
-      },
+      }
     });
   }
-}
+} 

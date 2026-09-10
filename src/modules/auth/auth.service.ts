@@ -18,17 +18,19 @@ export class AuthService {
     const { email, password } = body;
     const hashedPassword = await hashPassword(password);
 
+    
     const [newUser] = await this.appdb
-      .insert(users)
-      .values({
-        email,
-        password: hashedPassword,
-      })
-      .returning({
-        id: users.id,
-        email: users.email,
-        createdAt: users.createdAt,
-      });
+        .insert(users)
+        .values({
+          email,
+          password: hashedPassword,
+        })
+        .returning({
+          id: users.id,
+          email: users.email,
+          createdAt: users.createdAt,
+        });
+    
 
     // Event Emitter
     this.eventEmitter.emit(
