@@ -6,6 +6,7 @@ import { AuthEventsListener } from './events/listeners/auth.listener.js';
 import { SendEmail } from './modules/emails/email.service.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { AppService } from './modules/app/app.service.js';
+import { StoryModule } from './modules/stories/stories.module.js';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -14,6 +15,7 @@ import { AppService } from './modules/app/app.service.js';
       verboseMemoryLeak: false,
     }),
     AuthModule,
+    StoryModule,
   ],
   controllers: [AppController],
   providers: [AppService, AuthEventsListener, SendEmail],

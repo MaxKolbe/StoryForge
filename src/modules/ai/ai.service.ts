@@ -7,7 +7,7 @@ import OpenAI from 'openai';
 
 @Injectable()
 export class OpenAiService {
-  private readonly MODEL = '';
+  private readonly MODEL = 'gpt-5.6-luna';
   private readonly client = new OpenAI({
     apiKey: env.OPENAI_API_KEY,
     maxRetries: 3,

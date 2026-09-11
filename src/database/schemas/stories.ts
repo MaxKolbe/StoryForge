@@ -20,7 +20,6 @@ export const stories = p.pgTable('stories', {
     .uuid('user_id')
     .notNull()
     .references(() => users.id),
-  prompt: p.text('prompt').notNull(),
   fullContent: p.text('full_content').notNull(),
   isUnlocked: p.boolean('is_unlocked').notNull().default(false),
   ...timestamps,
