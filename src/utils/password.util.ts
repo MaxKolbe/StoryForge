@@ -1,10 +1,17 @@
-import bcrypt from "bcryptjs";
+import { Injectable } from '@nestjs/common';
+import bcrypt from 'bcryptjs';
 
-const SALT_ROUND = 10;
-export const hashPassword = async (plainText: string): Promise<string> => {
-  return await bcrypt.hash(plainText, SALT_ROUND);
-};
+const Bcrypt = bcrypt
+@Injectable()
+export class PasswordService {
+  private SALT_ROUND = 10;
+  private bcrypt = Bcrypt 
 
-export const verifyPassword = async (plainText: string, hash: string): Promise<boolean> => {
-  return await bcrypt.compare(plainText, hash);
-};
+  async hashPassword(plainText: string): Promise<string> {
+    return await this.bcrypt.hash(plainText, this.SALT_ROUND);
+  }
+
+  async verifyPassword(plainText: string, hash: string): Promise<boolean> {
+    return await this.bcrypt.compare(plainText, hash);
+  }
+}

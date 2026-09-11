@@ -3,6 +3,7 @@ import {
   Req,
   Param,
   Controller,
+  UseGuards,
   BadRequestException,
   UnauthorizedException,
   ForbiddenException,
@@ -13,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { AppService } from './app.service.js';
 import type { Request } from 'express';
-
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
@@ -23,6 +24,15 @@ export class AppController {
     return {
       success: true,
       message: 'Welcome to StoryForge',
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('api/v1/admin')
+  getAdmin() {
+    return {
+      success: true,
+      message: 'Welcome to StoryForge Admin',
     }
   }
 

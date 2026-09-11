@@ -8,8 +8,12 @@ import { AuthService } from './modules/auth/auth.service.js';
 import { AuthEventsListener } from './events/listeners/auth.listener.js';
 import { SendEmail } from './modules/emails/email.service.js';
 import { Database } from './config/db.config.js';
-import { LocalStrategy } from './modules/auth/local.strategy.js';
+import { LocalStrategy } from './modules/auth/strategies/local.strategy.js';
 import { PassportModule } from '@nestjs/passport';
+import { JwtModule } from '@nestjs/jwt';
+import { jwtConstants } from './modules/auth/constants/constants.js';
+import { JwtStrategy } from './modules/auth/strategies/jwt.strategy.js';
+import { PasswordService } from './utils/password.util.js';
 
 @Module({
   imports: [
@@ -18,7 +22,11 @@ import { PassportModule } from '@nestjs/passport';
       maxListeners: 10,
       verboseMemoryLeak: false,
     }),
-    PassportModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.register({
+      secret: jwtConstants.secret,
+      signOptions: { expiresIn: '30m' },
+    }),
   ],
   controllers: [AppController, AuthController],
   providers: [
@@ -28,6 +36,8 @@ import { PassportModule } from '@nestjs/passport';
     SendEmail,
     Database,
     LocalStrategy,
+    JwtStrategy,
+    PasswordService,
   ],
 })
 export class AppModule {}

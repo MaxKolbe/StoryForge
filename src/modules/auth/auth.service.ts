@@ -1,16 +1,16 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
 } from '@nestjs/common';
-import { hashPassword, verifyPassword } from '../../utils/password.util.js';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { JwtService } from '@nestjs/jwt';
+import { PasswordService } from '../../utils/password.util.js';
 import { UserRegisteredEvent } from '../../events/auth.events.js';
-import { generateToken } from '../../utils/token.js';
-import { AuthDto } from './dto/auth.dto.js';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { users } from '../../database/schemas/users.js';
+// import { generateToken } from '../../utils/token.js';
 import { GlobalReturn } from '../../types/global.js';
 import { Database } from '../../config/db.config.js';
-import { users } from '../../database/schemas/users.js';
+import { AuthDto } from './dto/auth.dto.js';
 import { eq } from 'drizzle-orm';
 
 @Injectable()
@@ -18,12 +18,14 @@ export class AuthService {
   constructor(
     private eventEmitter: EventEmitter2,
     private readonly appdb: Database,
+    private readonly jwtService: JwtService,
+    private readonly passwordService: PasswordService
   ) {}
 
   async register(body: AuthDto): Promise<GlobalReturn> {
     const db = this.appdb.exec();
     const { email, password } = body;
-    const hashedPassword = await hashPassword(password);
+    const hashedPassword = await this.passwordService.hashPassword(password);
 
     const [oguser] = await db
       .select()
@@ -64,37 +66,11 @@ export class AuthService {
     };
   }
 
-  async login(body: AuthDto): Promise<GlobalReturn> {
-    const db = this.appdb.exec();
-    const { email, password } = body;
-
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, email))
-      .limit(1);
-
-    if (!user) {
-      throw new BadRequestException('Invalid credentials');
-    }
-
-    const valid = await verifyPassword(password, user.password);
-    if (!valid) {
-      throw new BadRequestException('Invalid credentials');
-    }
-
-    const token = generateToken({
-      id: user.id,
-      email,
-    });
-
+  async login(user: any) {
+    const payload = { email: user.email, sub: user.id };
     return {
-      success: true,
-      message: 'user logged in successfully',
-      data: { id: user.id, email: user.email, createdAt: user.createdAt },
-      meta: {
-        token,
-      },
+      user,
+      access_token: this.jwtService.sign(payload),
     };
   }
 
@@ -108,7 +84,7 @@ export class AuthService {
       .where(eq(users.email, email))
       .limit(1);
 
-    if (user && (await verifyPassword(password, user.password))) {
+    if (user && (await this.passwordService.verifyPassword(password, user.password))) {
       const { password, ...result } = user;
       return result;
     }
