@@ -8,6 +8,8 @@ import { AuthService } from './modules/auth/auth.service.js';
 import { AuthEventsListener } from './events/listeners/auth.listener.js';
 import { SendEmail } from './modules/emails/email.service.js';
 import { Database } from './config/db.config.js';
+import { LocalStrategy } from './modules/auth/local.strategy.js';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports: [
@@ -16,6 +18,7 @@ import { Database } from './config/db.config.js';
       maxListeners: 10,
       verboseMemoryLeak: false,
     }),
+    PassportModule,
   ],
   controllers: [AppController, AuthController],
   providers: [
@@ -24,6 +27,7 @@ import { Database } from './config/db.config.js';
     AuthEventsListener,
     SendEmail,
     Database,
+    LocalStrategy,
   ],
 })
 export class AppModule {}

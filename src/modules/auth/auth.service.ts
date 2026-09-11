@@ -8,6 +8,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UserRegisteredEvent } from '../../events/auth.events.js';
 import { generateToken } from '../../utils/token.js';
 import { AuthDto } from './dto/auth.dto.js';
+import { GlobalReturn } from '../../types/global.js';
 import { Database } from '../../config/db.config.js';
 import { users } from '../../database/schemas/users.js';
 import { eq } from 'drizzle-orm';
@@ -19,7 +20,7 @@ export class AuthService {
     private readonly appdb: Database,
   ) {}
 
-  async register(body: AuthDto) {
+  async register(body: AuthDto): Promise<GlobalReturn> {
     const db = this.appdb.exec();
     const { email, password } = body;
     const hashedPassword = await hashPassword(password);
@@ -63,7 +64,7 @@ export class AuthService {
     };
   }
 
-  async login(body: AuthDto) {
+  async login(body: AuthDto): Promise<GlobalReturn> {
     const db = this.appdb.exec();
     const { email, password } = body;
 
@@ -95,5 +96,22 @@ export class AuthService {
         token,
       },
     };
+  }
+
+  async validateUser(body: AuthDto): Promise<any> {
+    const db = this.appdb.exec();
+    const { email, password } = body;
+
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+
+    if (user && (await verifyPassword(password, user.password))) {
+      const { password, ...result } = user;
+      return result;
+    }
+    return null;
   }
 }
