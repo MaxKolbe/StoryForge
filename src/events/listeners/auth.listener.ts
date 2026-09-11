@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { UserRegisteredEvent } from '../events.js';
+import { UserRegisteredEvent } from '../auth.events.js';
 import { SendEmail } from '../../modules/emails/email.service.js';
 import ejs from 'ejs';
 

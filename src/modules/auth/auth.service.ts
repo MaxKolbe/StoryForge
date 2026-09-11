@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { hashPassword, verifyPassword } from '../../utils/password.util.js';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { UserRegisteredEvent } from '../../events/events.js';
+import { UserRegisteredEvent } from '../../events/auth.events.js';
 import { generateToken } from '../../utils/token.js';
 import { AuthDto } from './dto/auth.dto.js';
 import { Database } from '../../config/db.config.js';
