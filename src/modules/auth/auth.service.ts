@@ -1,13 +1,9 @@
-import {
-  ConflictException,
-  Injectable,
-} from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PasswordService } from '../../utils/password.util.js';
+import { PasswordService } from './password.service.js';
 import { UserRegisteredEvent } from '../../events/auth.events.js';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { users } from '../../database/schemas/users.js';
-// import { generateToken } from '../../utils/token.js';
 import { GlobalReturn } from '../../types/global.js';
 import { Database } from '../../config/db.config.js';
 import { AuthDto } from './dto/auth.dto.js';
@@ -19,7 +15,7 @@ export class AuthService {
     private eventEmitter: EventEmitter2,
     private readonly appdb: Database,
     private readonly jwtService: JwtService,
-    private readonly passwordService: PasswordService
+    private readonly passwordService: PasswordService,
   ) {}
 
   async register(body: AuthDto): Promise<GlobalReturn> {
@@ -84,7 +80,10 @@ export class AuthService {
       .where(eq(users.email, email))
       .limit(1);
 
-    if (user && (await this.passwordService.verifyPassword(password, user.password))) {
+    if (
+      user &&
+      (await this.passwordService.verifyPassword(password, user.password))
+    ) {
       const { password, ...result } = user;
       return result;
     }
