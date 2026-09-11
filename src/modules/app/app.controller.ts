@@ -1,6 +1,5 @@
 import {
   Get,
-  Res,
   Req,
   Param,
   Controller,
@@ -13,29 +12,28 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { AppService } from './app.service.js';
-import type { Request, Response } from 'express';
+import type { Request } from 'express';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get('api/v1')
-  getHome(@Res({ passthrough: true }) response: Response) {
-    response.status(200).json({
+  getHome() {
+    return {
       success: true,
       message: 'Welcome to StoryForge',
-    });
+    }
   }
 
   @Get('*')
   getWildCard(
     @Req() request: Request,
-    @Res({ passthrough: true }) response: Response,
   ) {
-    response.status(404).json({
+    return{
       success: false,
       error: { code: 'NOT_FOUND', message: `Route ${request.path} not found` },
-    });
+    };
   }
 
   @Get('errors/:id')

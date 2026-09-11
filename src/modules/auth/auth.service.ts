@@ -55,7 +55,12 @@ export class AuthService {
       }),
     );
 
-    return newUser;
+    return {
+      success: true,
+      message: 'user registered successfully',
+      data: newUser,
+      meta: null,
+    };
   }
 
   async login(body: AuthDto) {
@@ -83,8 +88,12 @@ export class AuthService {
     });
 
     return {
-      user: { id: user.id, email: user.email, createdAt: user.createdAt },
-      token,
+      success: true,
+      message: 'user logged in successfully',
+      data: { id: user.id, email: user.email, createdAt: user.createdAt },
+      meta: {
+        token,
+      },
     };
   }
 }

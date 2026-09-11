@@ -1,4 +1,3 @@
-import { HttpException } from '@nestjs/common';
 import * as z from 'zod';
 
 const EnvSchema = z.object({
