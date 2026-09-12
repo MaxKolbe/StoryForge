@@ -1,0 +1,105 @@
+meta {
+  name: List Stories
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseurl}}/api/v1/stories?page=1&limit=10&orderBy=desc
+  body: none
+  auth: bearer
+}
+
+params:query {
+  page: 1
+  limit: 10
+  orderBy: desc
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+vars:pre-request {
+  baseurl: http://localhost:3000
+  access_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJzdWIiOiIyZWQ1MzBlMi0yMWVlLTQ3ZjMtYmUyZS1iNmNkODBlZDU5MzIiLCJpYXQiOjE3ODkxOTM4MTUsImV4cCI6MTc4OTE5NTYxNX0.K895iV5l0cPdl5Uj0g4hEkC0JIEeNFT8JRDpRJ2FD0w
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}
+
+docs {
+  ## List Stories
+  
+  Retrieves a paginated list of stories created by the authenticated user, ordered by creation date.
+  
+  This endpoint requires a valid JWT bearer token.
+  
+  ### Query Parameters
+  
+  | Field     | Type   | Constraints                | Description                                 |
+  |-----------|--------|----------------------------|---------------------------------------------|
+  | `page`    | number | min: 1                     | Page number for pagination.                 |
+  | `limit`   | number | min: 1, max: 25           | Number of stories per page.                 |
+  | `orderBy` | string | Allowed: `"asc"`, `"desc"` | Sorting order based on story creation date. |
+  
+  ### Success Response — `200 OK`
+  
+  ```json
+  {
+    "success": true,
+    "message": "products retrieved successfully",
+    "data": [
+      {
+        "preview": "Ember the Dragon had always believed fir...",
+        "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        "userId": "f0e1d2c3-b4a5-6789-0abc-def123456789",
+        "isUnlocked": false,
+        "createdAt": "2026-09-11T15:30:00.000Z"
+      }
+    ],
+    "meta": {
+      "pagination": {
+        "page": 1,
+        "limit": 10,
+        "totalRecords": 1,
+        "totalPages": 1,
+        "hasNextPage": false,
+        "hasPrevPage": false
+      }
+    }
+  }
+  ```
+  
+  ### Error Responses
+  
+  #### `400 Bad Request` — Validation Error
+  
+  Returned when query parameters are missing or fail validation rules (e.g. `page` is less than 1, `limit` exceeds 100, or `orderBy` is invalid).
+  
+  ```json
+  {
+    "statusCode": 400,
+    "message": [
+      "page must not be less than 1",
+      "limit must not be greater than 100",
+      "orderBy must be one of the following values: asc, desc"
+    ],
+    "error": "Bad Request"
+  }
+  ```
+  
+  #### `401 Unauthorized` — Missing or Invalid JWT
+  
+  Returned when no bearer token is provided or the token is invalid/expired.
+  
+  ```json
+  {
+    "statusCode": 401,
+    "message": "Unauthorized"
+  }
+  ```
+}

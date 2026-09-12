@@ -14,7 +14,14 @@ async function bootstrap() {
   });
 
   app.useLogger(new logger());
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+    }),
+  );
   app.useStaticAssets(join(process.cwd(), '/public'));
   app.setBaseViewsDir(join(process.cwd(), '/views'));
   app.setViewEngine('ejs');
