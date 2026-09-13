@@ -4,8 +4,10 @@ import {
   Post,
   Body,
   Query,
+  Param,
   Controller,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { CreateStory, ListStories } from './dto/story.dto.js';
 import { StoryService } from './stories.service.js';
@@ -27,8 +29,12 @@ export class StoryController {
     return this.storyService.listStories(query, req);
   }
 
-  @Get('id/checkout')
-  storyCheckout() {
-    return;
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/checkout')
+  storyCheckout(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Req() req: Request,
+  ) {
+    return this.storyService.checkoutStory(id, req);
   }
 }

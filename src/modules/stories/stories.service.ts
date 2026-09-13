@@ -1,20 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { stories } from '../../database/schemas/stories.js';
 import { OpenAiService } from '../ai/ai.service.js';
 import { Database } from '../../config/db.config.js';
 import { CreateStory, ListStories } from './dto/story.dto.js';
 import type { Request } from 'express';
-import { asc, desc, count, eq } from 'drizzle-orm';
+import { asc, desc, count, eq, and } from 'drizzle-orm';
 import { GlobalReturn } from '../../types/global.js';
+import { CreateSession } from '../payments/payments.service.js';
+import { story_price } from '../payments/constants/constants.js';
+import { LineItem } from '../../types/payment.js';
 
 @Injectable()
 export class StoryService {
   constructor(
     private readonly appdb: Database,
     private readonly client: OpenAiService,
+    private readonly session: CreateSession,
   ) {}
 
-  async createStory(body: CreateStory, req: Request) {
+  async createStory(body: CreateStory, req: Request): Promise<GlobalReturn> {
     const db = this.appdb.exec();
 
     const output_text = await this.client.createStory(
@@ -67,7 +71,10 @@ export class StoryService {
     const totalPages = Math.ceil(totalRecords!.count / limit);
     const allStories = data.map((story) => {
       const { fullContent: _fullContent, ...remainingContent } = story;
-      return { preview: `${_fullContent.slice(0, 250)}...`, ...remainingContent };
+      return {
+        preview: `${_fullContent.slice(0, 250)}...`,
+        ...remainingContent,
+      };
     });
 
     return {
@@ -84,6 +91,48 @@ export class StoryService {
           hasPrevPage: page > 1,
         },
       },
+    };
+  }
+
+  async checkoutStory(id: string, req: Request): Promise<GlobalReturn> {
+    const db = this.appdb.exec();
+    const [story] = await db
+      .select({ id: stories.id })
+      .from(stories)
+      .where(and(eq(stories.id, id), eq(stories.userId, req.user!.id)));
+
+    if (!story) {
+      throw new NotFoundException(`Story ${id} not found`);
+    }
+    
+    const lineItem: LineItem = [
+      {
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: `StoryForge Story #${story.id.split('-')[0]}`,
+            description: 'StoryForge Story',
+          },
+          unit_amount: story_price,
+        },
+        quantity: 1
+      },
+    ];
+
+    const session = await this.session.storyCheckoutSession(
+      lineItem,
+      req.user!.email,
+      req.user!.id,
+      story.id,
+    );
+
+    return {
+      success: true,
+      message: 'story checkout session successfully',
+      data: {
+        url: session.url,
+      },
+      meta: null,
     };
   }
 }

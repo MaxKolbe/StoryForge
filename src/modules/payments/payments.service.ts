@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { env } from '../../config/env.validation.js';
-import { story_price } from './constants/constants.js';
 import { Logger } from '@nestjs/common';
+import { LineItem } from '../../types/payment.js';
 import Stripe from 'stripe';
 
 @Injectable()
@@ -9,7 +9,7 @@ export class CreateSession {
   private readonly stripe = new Stripe(env.STRIPE_SECRET_KEY);
 
   async storyCheckoutSession(
-    lineItems: any,
+    lineItems: LineItem,
     userEmail: string,
     userId: string,
     storyId: string,
