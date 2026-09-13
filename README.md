@@ -46,6 +46,7 @@ The application validates environment configuration on application startup. Belo
 | `STRIPE_SECRET_KEY` | **Yes** | — | Secret key for Stripe payment processing. |
 | `STRIPE_WEBHOOK_SECRET` | **Yes** | — | Secret key for verifying incoming Stripe webhook signatures. |
 | `API_BASE_URL` | No | `http://localhost:3000` | Base URL of the API service. |
+| `OPENAI_API_KEY` | **Yes** | — | Secret API key for OpenAI service integration. |
 
 ## Running the Project
 
@@ -109,6 +110,16 @@ Base path: `/api/v1/auth`
 | `POST` | `/api/v1/auth/register` | Registers a new user account. | JSON object: `{ "email": "<email>", "password": "<password>" }` |
 | `POST` | `/api/v1/auth/login` | Authenticates user credentials and returns a JWT token. | JSON object: `{ "email": "<email>", "password": "<password>" }` |
 
+### Stories Routes
+
+Base path: `/api/v1/stories` *(Requires JWT Bearer Authentication)*
+
+| HTTP Method | Path | Description | Parameters / Request Body |
+| --- | --- | --- | --- |
+| `POST` | `/api/v1/stories` | Creates a new AI-generated story. | JSON object: `{ "topic": "<topic>", "characters": ["<char1>", "<char2>"] }` |
+| `GET` | `/api/v1/stories` | Retrieves a paginated list of the user's stories. | Query parameters: `page` (number), `limit` (number), `orderBy` (`asc` \| `desc`) |
+| `POST` | `/api/v1/stories/:id/checkout` | Initiates a Stripe checkout session to unlock a story. | Path parameter `id`: Story UUID string |
+
 ## Basic API Usage
 
 ### 1. Health Check
@@ -161,7 +172,7 @@ curl -X POST http://localhost:3000/api/v1/auth/register \
 **Request:**
 
 ```bash
-curl -X POST http://localhost:3000/api/v1/auth/login \gi
+curl -X POST http://localhost:3000/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -183,5 +194,95 @@ curl -X POST http://localhost:3000/api/v1/auth/login \gi
   "meta": {
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
   }
+}
+```
+
+### 4. Create Story
+
+**Request:**
+
+```bash
+curl -X POST http://localhost:3000/api/v1/stories \
+  -H "Authorization: Bearer <your_jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topic": "A dragon learning software engineering",
+    "characters": ["Ember the Dragon", "Pixie the Frog"]
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "new story created successfully",
+  "data": {
+    "preview": "Ember the Dragon had always believed...",
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "userId": "f0e1d2c3-b4a5-6789-0abc-def123456789",
+    "isUnlocked": false,
+    "createdAt": "2026-09-11T15:30:00.000Z"
+  },
+  "meta": null
+}
+```
+
+### 5. List Stories
+
+**Request:**
+
+```bash
+curl -X GET "http://localhost:3000/api/v1/stories?page=1&limit=10&orderBy=desc" \
+  -H "Authorization: Bearer <your_jwt_token>"
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "products retrieved successfully",
+  "data": [
+    {
+      "preview": "Ember the Dragon had always believed...",
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "userId": "f0e1d2c3-b4a5-6789-0abc-def123456789",
+      "isUnlocked": false,
+      "createdAt": "2026-09-11T15:30:00.000Z"
+    }
+  ],
+  "meta": {
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "totalRecords": 1,
+      "totalPages": 1,
+      "hasNextPage": false,
+      "hasPrevPage": false
+    }
+  }
+}
+```
+
+### 6. Checkout Story
+
+**Request:**
+
+```bash
+curl -X POST http://localhost:3000/api/v1/stories/a1b2c3d4-e5f6-7890-abcd-ef1234567890/checkout \
+  -H "Authorization: Bearer <your_jwt_token>"
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "story checkout session successfully",
+  "data": {
+    "url": "https://checkout.stripe.com/c/pay/cs_test_a1b2c3d4e5f67890"
+  },
+  "meta": null
 }
 ```

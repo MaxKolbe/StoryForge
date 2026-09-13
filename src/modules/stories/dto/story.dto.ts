@@ -14,7 +14,7 @@ import {
 } from 'class-validator';
 
 export class CreateStory {
-  @Length(8, 32)
+  @Length(4, 80)
   topic: string;
 
   @IsArray()

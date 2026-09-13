@@ -3,7 +3,6 @@ import { env } from '../../config/env.validation.js';
 import { Logger } from '@nestjs/common';
 import { LineItem } from '../../types/payment.js';
 import Stripe from 'stripe';
-
 @Injectable()
 export class CreateSession {
   private readonly stripe = new Stripe(env.STRIPE_SECRET_KEY);
@@ -26,6 +25,7 @@ export class CreateSession {
         },
       });
 
+      Logger.log(session, "Session data")
       return session;
     } catch (error: unknown) {
       if (error instanceof this.stripe.errors.StripeError) {
