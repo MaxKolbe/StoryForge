@@ -1,0 +1,1 @@
+export const story_price: number = 500 
