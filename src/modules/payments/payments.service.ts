@@ -25,7 +25,6 @@ export class CreateSession {
         },
       });
 
-      Logger.log(session, "Session data")
       return session;
     } catch (error: unknown) {
       if (error instanceof this.stripe.errors.StripeError) {
