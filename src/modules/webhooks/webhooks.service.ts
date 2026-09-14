@@ -10,7 +10,6 @@ export class FulfillOrder {
   constructor(private readonly appdb: Database) {}
 
   async storyOrder(session: Stripe.Checkout.Session): Promise<void> {
-    console.log(session);
     const db = await this.appdb.exec();
 
     if (session.payment_status !== 'paid') {
@@ -32,7 +31,7 @@ export class FulfillOrder {
       throw new Error(`Missing metadata for Stripe session ${session.id}`);
     }
 
-    if (session.amount_total === 500) {
+    if (session.amount_total !== 500) {
       throw new Error(
         `amount_total for Stripe session ${session.id} is not $5`,
       );

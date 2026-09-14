@@ -1,0 +1,123 @@
+meta {
+  name: Get Story
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseurl}}/api/v1/stories/:id
+  body: none
+  auth: bearer
+}
+
+params:path {
+  id: 8f8cf906-3459-414a-85fb-99b0fdf156d7
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+vars:pre-request {
+  baseurl: http://localhost:3000
+  access_token: 
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}
+
+docs {
+  ## Get Story
+  
+  Retrieves a story by its unique ID for the authenticated user.
+  - If the story `isUnlocked` is `true`, the response returns the full story content (`fullContent`).
+  - If the story `isUnlocked` is `false`, the response returns a `preview` of the story instead of `fullContent`.
+  
+  This endpoint requires a valid JWT bearer token.
+  
+  ### Path Parameters
+  
+  | Field | Type   | Constraints | Description                         |
+  |-------|--------|-------------|-------------------------------------|
+  | `id`  | string | UUID v4     | The unique ID of the story to fetch. |
+  
+  ### Success Response — `200 OK` (Unlocked Story)
+  
+  ```json
+  {
+    "success": true,
+    "message": "story 8f8cf906-3459-414a-85fb-99b0fdf156d7 found successfully",
+    "data": {
+      "id": "8f8cf906-3459-414a-85fb-99b0fdf156d7",
+      "userId": "f0e1d2c3-b4a5-6789-0abc-def123456789",
+      "fullContent": "Ember the Dragon had always believed fire was meant to destroy...",
+      "isUnlocked": true,
+      "stripeCheckoutSessionId": "cs_test_a1b2c3d4e5f67890",
+      "createdAt": "2026-09-11T15:30:00.000Z",
+      "updatedAt": null,
+      "deletedAt": null
+    },
+    "meta": null
+  }
+  ```
+  
+  ### Success Response — `200 OK` (Locked Story)
+  
+  ```json
+  {
+    "success": true,
+    "message": "story 8f8cf906-3459-414a-85fb-99b0fdf156d7 found successfully",
+    "data": {
+      "preview": "Ember the Dragon had always believed fire was meant to destroy...",
+      "id": "8f8cf906-3459-414a-85fb-99b0fdf156d7",
+      "userId": "f0e1d2c3-b4a5-6789-0abc-def123456789",
+      "isUnlocked": false,
+      "stripeCheckoutSessionId": null,
+      "createdAt": "2026-09-11T15:30:00.000Z",
+      "updatedAt": null,
+      "deletedAt": null
+    },
+    "meta": null
+  }
+  ```
+  
+  ### Error Responses
+  
+  #### `400 Bad Request` — Invalid UUID
+  
+  Returned when the `:id` path parameter is not a valid UUID format.
+  
+  ```json
+  {
+    "statusCode": 400,
+    "message": "Validation failed (uuid is expected)",
+    "error": "Bad Request"
+  }
+  ```
+  
+  #### `401 Unauthorized` — Missing or Invalid JWT
+  
+  Returned when no bearer token is provided or the token is invalid/expired.
+  
+  ```json
+  {
+    "statusCode": 401,
+    "message": "Unauthorized"
+  }
+  ```
+  
+  #### `404 Not Found` — Story Not Found
+  
+  Returned when no story matches the given ID for the authenticated user.
+  
+  ```json
+  {
+    "statusCode": 404,
+    "message": "Story 8f8cf906-3459-414a-85fb-99b0fdf156d7 not found",
+    "error": "Not Found"
+  }
+  ```
+}

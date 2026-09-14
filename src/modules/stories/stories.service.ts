@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { stories } from '../../database/schemas/stories.js';
 import { OpenAiService } from '../ai/ai.service.js';
 import { Database } from '../../config/db.config.js';
@@ -97,6 +101,31 @@ export class StoryService {
     };
   }
 
+  async getStory(id: string, req: Request): Promise<GlobalReturn> {
+    const db = this.appdb.exec();
+
+    const [data] = await db
+      .select()
+      .from(stories)
+      .where(and(eq(stories.id, id), eq(stories.userId, req.user!.id)));
+
+    if (!data) {
+      throw new NotFoundException(`Story ${id} not found`);
+    }
+
+    const { fullContent: content, ...rest } = data;
+    const story = data.isUnlocked
+      ? data
+      : { preview: `${content.slice(0, 250)}...`, ...rest };
+
+    return {
+      success: true,
+      message: `story ${id} found successfully`,
+      data: story,
+      meta: null,
+    };
+  }
+
   async checkoutStory(id: string, req: Request): Promise<GlobalReturn> {
     const db = this.appdb.exec();
     const [story] = await db
@@ -108,8 +137,8 @@ export class StoryService {
       throw new NotFoundException(`Story ${id} not found`);
     }
 
-    if(story.isUnlocked === true){
-      throw new ConflictException(`Story ${id} is already unlocked`)
+    if (story.isUnlocked === true) {
+      throw new ConflictException(`Story ${id} is already unlocked`);
     }
 
     const lineItem: LineItem = [

@@ -31,6 +31,12 @@ export class StoryController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  getStory(@Param('id', new ParseUUIDPipe()) id: string, @Req() req: Request) {
+    return this.storyService.getStory(id, req);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Post(':id/checkout')
   storyCheckout(
     @Param('id', new ParseUUIDPipe()) id: string,
