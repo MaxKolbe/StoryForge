@@ -2,12 +2,9 @@ import ejs from 'ejs';
 import { Injectable, Logger } from '@nestjs/common';
 import { env } from '../../config/env.validation.js';
 import { BrevoClient, BrevoError } from '@getbrevo/brevo';
-
-const brevoClient = new BrevoClient({ apiKey: env.BREVO_API_KEY.toString() });
-
 @Injectable()
 export class SendEmail {
-  private readonly brevo = brevoClient;
+  private readonly brevo = new BrevoClient({ apiKey: env.BREVO_API_KEY.toString() });
 
   async sendEmail(
     to: string,

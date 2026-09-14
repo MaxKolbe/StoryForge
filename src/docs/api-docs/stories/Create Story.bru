@@ -1,0 +1,116 @@
+meta {
+  name: Create Story
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseurl}}/api/v1/stories
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+body:json {
+  {
+    "topic": "A bat who becomes a green lantern hero",
+    "characters": ["Bat the man"]
+  }
+}
+
+vars:pre-request {
+  baseurl: http://localhost:3000
+  access_token:
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}
+
+docs {
+  ## Create Story
+  
+  Generates a new AI-powered story based on a topic and character(s). The story is created via the OpenAI API and persisted to the database, associated with the authenticated user.
+  
+  This endpoint requires a valid JWT bearer token.
+  
+  ### Request Body
+  
+  | Field        | Type   | Constraints              | Description                          |
+  |--------------|--------|--------------------------|--------------------------------------|
+  | `topic`      | string | 8–32 characters          | The topic or premise for the story.  |
+  | `characters` | string | 8–56 characters          | The character(s) in the story.       |
+  
+  ### Success Response — `201 Created`
+  
+  ```json
+  {
+    "success": true,
+    "message": "new story created successfully",
+    "data": {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "userId": "f0e1d2c3-b4a5-6789-0abc-def123456789",
+      "preview": "Ember the Dragon had always believed fir...",
+      "isUnlocked": false,
+      "updatedAt": null,
+      "createdAt": "2026-09-11T15:30:00.000Z",
+      "deletedAt": null
+    },
+    "meta": null
+  }
+  ```
+  
+  ### Error Responses
+  
+  #### `400 Bad Request` — Validation Error
+  
+  Returned when the request body fails validation (e.g. `topic` is shorter than 8 characters or `characters` is missing).
+  
+  ```json
+  {
+    "statusCode": 400,
+    "message": [
+      "topic must be longer than or equal to 8 characters"
+    ],
+    "error": "Bad Request"
+  }
+  ```
+  
+  #### `401 Unauthorized` — Missing or Invalid JWT
+  
+  Returned when no bearer token is provided or the token is invalid/expired.
+  
+  ```json
+  {
+    "statusCode": 401,
+    "message": "Unauthorized"
+  }
+  ```
+  
+  #### `429 Too Many Requests` — AI Rate Limit
+  
+  Returned when the OpenAI API rate limit is exceeded.
+  
+  ```json
+  {
+    "statusCode": 429,
+    "message": "AI service rate limit exceeded. Please try again later."
+  }
+  ```
+  
+  #### `503 Service Unavailable` — AI Connection Error
+  
+  Returned when the OpenAI API is unreachable.
+  
+  ```json
+  {
+    "statusCode": 503,
+    "message": "AI service is currently unavailable."
+  }
+  ```
+}

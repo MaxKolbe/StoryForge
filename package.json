@@ -41,12 +41,14 @@
     "drizzle-orm": "^0.45.2",
     "ejs": "^6.0.1",
     "jsonwebtoken": "^9.0.3",
+    "openai": "^7.15.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "pg": "^8.23.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "stripe": "^22.6.2",
     "zod": "^4.6.1"
   },
   "devDependencies": {

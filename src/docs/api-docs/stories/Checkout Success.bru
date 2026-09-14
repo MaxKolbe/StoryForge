@@ -1,0 +1,53 @@
+meta {
+  name: Checkout Success
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseurl}}/api/v1/stories/checkout/success
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{access_token}}
+}
+
+vars:pre-request {
+  baseurl: http://localhost:3000
+  access_token: 
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}
+
+docs {
+  ## Checkout Success
+  
+  Endpoint called upon successful completion of a Stripe checkout session for a story.
+  
+  This endpoint requires a valid JWT bearer token.
+  
+  ### Success Response — `200 OK`
+  
+  ```text
+  Checkout Successful
+  ```
+  
+  ### Error Responses
+  
+  #### `401 Unauthorized` — Missing or Invalid JWT
+  
+  Returned when no bearer token is provided or the token is invalid/expired.
+  
+  ```json
+  {
+    "statusCode": 401,
+    "message": "Unauthorized"
+  }
+  ```
+}
