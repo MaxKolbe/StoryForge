@@ -6,17 +6,22 @@ import {
   BadRequestException,
   InternalServerErrorException,
   Logger,
+  HttpCode
 } from '@nestjs/common';
 import { env } from '../../config/env.validation.js';
 import type { Request } from 'express';
 import Stripe from 'stripe';
+import { FulfillOrder } from './webhooks.service.js';
 
 @Controller('webhooks')
 export class WebhookController {
   private readonly stripe = new Stripe(env.STRIPE_SECRET_KEY);
 
+  constructor(private readonly fulfillorder: FulfillOrder) {}
+
+  @HttpCode(200)
   @Post('stripe')
-  stripeWebhookController(@Req() req: RawBodyRequest<Request>) {
+  async stripeWebhookController(@Req() req: RawBodyRequest<Request>) {
     const signature = req.headers['stripe-signature'];
 
     if (typeof signature !== 'string') {
@@ -36,10 +41,7 @@ export class WebhookController {
         env.STRIPE_WEBHOOK_SECRET,
       );
     } catch (error) {
-      Logger.error(
-        { error },
-        'Stripe webhook signature verification failed',
-      );
+      Logger.error({ error }, 'Stripe webhook signature verification failed');
 
       throw new BadRequestException('Invalid webhook signature');
     }
@@ -48,8 +50,7 @@ export class WebhookController {
       switch (event.type) {
         case 'checkout.session.completed': {
           const session = event.data.object;
-
-          // Call service handler
+          await this.fulfillorder.storyOrder(session);
           break;
         }
 
