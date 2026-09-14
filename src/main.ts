@@ -11,6 +11,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     abortOnError: false,
     routeResolutionStrategy: 'specificity',
+    rawBody: true
   });
 
   app.useLogger(new logger());
