@@ -1,13 +1,18 @@
 import { Logger } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import { Database } from '../../config/db.config.js';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { stories } from '../../database/schemas/stories.js';
 import { eq, and, isNull } from 'drizzle-orm';
 import Stripe from 'stripe';
+import { StoryPurchasedEvent } from '../../events/stories.events.js';
 
 @Injectable()
 export class FulfillOrder {
-  constructor(private readonly appdb: Database) {}
+  constructor(
+    private readonly appdb: Database,
+    private eventEmitter: EventEmitter2,
+  ) {}
 
   async storyOrder(session: Stripe.Checkout.Session): Promise<void> {
     const db = await this.appdb.exec();
@@ -38,24 +43,6 @@ export class FulfillOrder {
     }
 
     // idempotency check
-    const [isProcessed] = await db
-      .select()
-      .from(stories)
-      .where(eq(stories.stripeCheckoutSessionId, session.id))
-      .limit(1);
-
-    if (isProcessed) {
-      Logger.log(
-        {
-          purchaseId: isProcessed.id,
-          sessionId: session.id,
-        },
-        'Story order already fulfilled',
-      );
-
-      return;
-    }
-
     const [updatedStory] = await db
       .update(stories)
       .set({
@@ -72,9 +59,37 @@ export class FulfillOrder {
       .returning();
 
     if (!updatedStory) {
-      throw new Error(`Story ${storyId} not found for user ${userId}`);
+      throw new Error(`Story ${storyId} not found or already fulfilled`);
     }
 
-    // email service
+    // email event emitter service
+    const email = session.metadata?.email;
+
+    if (!email) {
+      Logger.warn(
+        {
+          sessionId: session.id,
+        },
+        'Missing user email on checkout session',
+      );
+    } else {
+      this.eventEmitter.emit(
+        'story.user-purchased',
+        new StoryPurchasedEvent({
+          userId,
+          storyId,
+          email,
+        }),
+      );
+    }
+
+    Logger.log(
+      {
+        sessionId: session.id,
+        userId,
+        storyId,
+      },
+      'Story purchased  successfully',
+    );
   }
 }
