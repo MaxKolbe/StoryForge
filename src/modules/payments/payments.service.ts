@@ -18,7 +18,8 @@ export class CreateSession {
         line_items: lineItems,
         mode: 'payment',
         customer_email: userEmail,
-        success_url: `${env.API_BASE_URL}/api/v1/stories/checkout?success=true`,
+        success_url: `${env.API_BASE_URL}/api/v1/stories/checkout/success`,
+        cancel_url: `${env.API_BASE_URL}/api/v1/stories/checkout/cancel`,
         metadata: {
           userId,
           storyId,

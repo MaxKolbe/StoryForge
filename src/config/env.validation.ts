@@ -15,7 +15,7 @@ const EnvSchema = z.object({
   STRIPE_SECRET_KEY: z.string('STRIPE_SECRET_KEY is missing'),
   STRIPE_WEBHOOK_SECRET: z.string('STRIPE_WEBHOOK_SECRET is missing'),
   API_BASE_URL: z.string().default('http://localhost:3000'),
-  OPENAI_API_KEY: z.string("OPENAI KEY is missing")
+  GROQ_API_KEY: z.string("GROQ API KEY is missing")
 });
 
 const result = EnvSchema.safeParse(process.env);

@@ -13,6 +13,7 @@ import { CreateStory, ListStories } from './dto/story.dto.js';
 import { StoryService } from './stories.service.js';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { success } from 'zod';
 @Controller('api/v1/stories')
 export class StoryController {
   constructor(private readonly storyService: StoryService) {}
@@ -36,5 +37,17 @@ export class StoryController {
     @Req() req: Request,
   ) {
     return this.storyService.checkoutStory(id, req);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('checkout/success')
+  checkoutoNSuccess() {
+    return 'Checkout Successful';
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('checkout/cancel')
+  checkoutOnCancel() {
+    return 'Checkout Cancelled';
   }
 }

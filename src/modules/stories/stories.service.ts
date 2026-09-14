@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { stories } from '../../database/schemas/stories.js';
 import { OpenAiService } from '../ai/ai.service.js';
 import { Database } from '../../config/db.config.js';
@@ -65,7 +65,10 @@ export class StoryService {
         .orderBy(sortOrder)
         .limit(limit)
         .offset(offset),
-      db.select({ count: count() }).from(stories),
+      db
+        .select({ count: count() })
+        .from(stories)
+        .where(eq(stories.userId, req.user!.id)),
     ]);
 
     const totalPages = Math.ceil(totalRecords!.count / limit);
@@ -79,7 +82,7 @@ export class StoryService {
 
     return {
       success: true,
-      message: 'products retrieved successfully',
+      message: 'stories retrieved successfully',
       data: allStories,
       meta: {
         pagination: {
@@ -97,14 +100,18 @@ export class StoryService {
   async checkoutStory(id: string, req: Request): Promise<GlobalReturn> {
     const db = this.appdb.exec();
     const [story] = await db
-      .select({ id: stories.id })
+      .select({ id: stories.id, isUnlocked: stories.isUnlocked })
       .from(stories)
       .where(and(eq(stories.id, id), eq(stories.userId, req.user!.id)));
 
     if (!story) {
       throw new NotFoundException(`Story ${id} not found`);
     }
-    
+
+    if(story.isUnlocked === true){
+      throw new ConflictException(`Story ${id} is already unlocked`)
+    }
+
     const lineItem: LineItem = [
       {
         price_data: {
@@ -115,7 +122,7 @@ export class StoryService {
           },
           unit_amount: story_price,
         },
-        quantity: 1
+        quantity: 1,
       },
     ];
 
