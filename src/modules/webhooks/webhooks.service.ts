@@ -6,6 +6,7 @@ import { stories } from '../../database/schemas/stories.js';
 import { eq, and, isNull } from 'drizzle-orm';
 import Stripe from 'stripe';
 import { StoryPurchasedEvent } from '../../events/stories.events.js';
+import { story_price } from '../payments/constants/constants.js';
 
 @Injectable()
 export class FulfillOrder {
@@ -15,7 +16,7 @@ export class FulfillOrder {
   ) {}
 
   async storyOrder(session: Stripe.Checkout.Session): Promise<void> {
-    const db = await this.appdb.exec();
+    const db = this.appdb.exec();
 
     if (session.payment_status !== 'paid') {
       Logger.warn(
@@ -36,7 +37,7 @@ export class FulfillOrder {
       throw new Error(`Missing metadata for Stripe session ${session.id}`);
     }
 
-    if (session.amount_total !== 500) {
+    if (session.amount_total !== story_price) {
       throw new Error(
         `amount_total for Stripe session ${session.id} is not $5`,
       );
@@ -59,7 +60,11 @@ export class FulfillOrder {
       .returning();
 
     if (!updatedStory) {
-      throw new Error(`Story ${storyId} not found or already fulfilled`);
+      Logger.log({
+        storyId,
+        userId
+      }, `Story not found or already fulfilled`);
+      return;
     }
 
     // email event emitter service
