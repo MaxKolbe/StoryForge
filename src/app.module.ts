@@ -7,6 +7,9 @@ import { SendEmail } from './modules/emails/email.service.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { AppService } from './modules/app/app.service.js';
 import { StoryModule } from './modules/stories/stories.module.js';
+import { WebhookModule } from './modules/webhooks/webhooks.module.js';
+import { StoryEventsListener } from './events/listeners/stories.listener.js';
+import { Database } from './config/db.config.js';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -16,8 +19,9 @@ import { StoryModule } from './modules/stories/stories.module.js';
     }),
     AuthModule,
     StoryModule,
+    WebhookModule,
   ],
   controllers: [AppController],
-  providers: [AppService, AuthEventsListener, SendEmail],
+  providers: [AppService, AuthEventsListener, StoryEventsListener, SendEmail, Database],
 })
 export class AppModule {}

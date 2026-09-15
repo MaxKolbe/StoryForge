@@ -23,6 +23,7 @@ export class CreateSession {
         metadata: {
           userId,
           storyId,
+          email: userEmail
         },
       });
 
