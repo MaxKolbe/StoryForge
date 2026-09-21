@@ -23,7 +23,9 @@
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "listen": "stripe listen --forward-to localhost:3000/webhooks/stripe",
+    "trigger-checkout": "stripe trigger checkout.session.completed"
   },
   "dependencies": {
     "@getbrevo/brevo": "^6.0.3",
